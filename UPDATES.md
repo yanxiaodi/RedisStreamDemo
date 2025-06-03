@@ -2,7 +2,15 @@
 
 ## Enhancements Added
 
-### Resilience Features (Latest)
+### Testing Improvements (Latest)
+
+- Added unified load testing script with configurable parameters
+- Enhanced error handling and reporting in test scripts
+- Added support for different deployment environments in tests
+- Improved test output with color-coded success/failure reporting
+- Automatic health checks before testing
+
+### Resilience Features
 
 - Implemented Polly-based resilience patterns for improved reliability
 - Added retry logic for all Redis operations with exponential backoff
