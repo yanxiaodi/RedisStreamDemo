@@ -1,0 +1,23 @@
+@ingressServiceUrl = http://localhost:5009
+@proxyServiceUrl = http://localhost:5010
+
+### Get Weather Forecast from IngressService
+GET {{ingressServiceUrl}}/WeatherForecast
+Accept: application/json
+
+### Get Weather for a specific city from IngressService
+POST {{ingressServiceUrl}}/WeatherForecast/city
+Content-Type: application/json
+
+{
+  "city": "New York",
+  "location": "Downtown"
+}
+
+### Get Weather Forecast from ProxyService
+GET {{proxyServiceUrl}}/WeatherForecast
+Accept: application/json
+
+### Get ProxyService Status
+GET {{proxyServiceUrl}}/WeatherForecast/status
+Accept: application/json
