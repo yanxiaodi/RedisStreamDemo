@@ -4,31 +4,35 @@ This project demonstrates a decoupled service architecture using Redis Streams f
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Running Locally](#running-locally)
-  - [Running with Docker Compose](#running-with-docker-compose)
-  - [Kubernetes Deployment](#kubernetes-deployment)
-- [Architecture](#architecture)
-  - [System Components](#system-components)
-  - [Communication Flow](#communication-flow)
-  - [Redis Streams](#redis-streams)
-  - [Concurrency Control](#concurrency-control)
-- [Resilience Features](#resilience-features)
-  - [Retry Pattern](#retry-pattern)
-  - [Circuit Breaker](#circuit-breaker)
-  - [Graceful Shutdown](#graceful-shutdown)
-  - [Health Checks](#health-checks)
-- [Testing](#testing)
-  - [Load Testing](#load-testing)
-  - [Monitoring Performance](#monitoring-performance)
-- [Operations](#operations)
-  - [Key Metrics](#key-metrics)
-  - [Scaling Considerations](#scaling-considerations)
-  - [Disaster Recovery](#disaster-recovery)
-- [Updates and Roadmap](#updates-and-roadmap)
-  - [Recent Enhancements](#recent-enhancements)
-  - [Future Plans](#future-plans)
+- [Redis Stream Demo](#redis-stream-demo)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Running Locally](#running-locally)
+      - [1. Start Redis](#1-start-redis)
+      - [2. Run the Applications](#2-run-the-applications)
+      - [3. Testing with Swagger UI](#3-testing-with-swagger-ui)
+    - [Running with Docker Compose](#running-with-docker-compose)
+    - [Kubernetes Deployment](#kubernetes-deployment)
+      - [1. Configure Docker Registry](#1-configure-docker-registry)
+      - [2. Deploy to Kubernetes](#2-deploy-to-kubernetes)
+      - [3. Access the Application](#3-access-the-application)
+      - [4. Access Monitoring](#4-access-monitoring)
+      - [5. Troubleshooting](#5-troubleshooting)
+  - [Flow](#flow)
+  - [Load Testing and Monitoring](#load-testing-and-monitoring)
+    - [Running Load Tests](#running-load-tests)
+    - [Monitoring Performance](#monitoring-performance)
+  - [Updates and Roadmap](#updates-and-roadmap)
+    - [Recent Enhancements](#recent-enhancements)
+      - [Testing Improvements (Latest)](#testing-improvements-latest)
+      - [Resilience Features](#resilience-features)
+      - [Kubernetes Deployment](#kubernetes-deployment-1)
+      - [Monitoring and Observability](#monitoring-and-observability)
+      - [Application Improvements](#application-improvements)
+    - [Future Plans](#future-plans)
+    - [Deployment Considerations](#deployment-considerations)
+  - [Additional Resources](#additional-resources)
 
 ## Getting Started
 
@@ -146,24 +150,6 @@ If pods don't start correctly, check:
 - Pod status: `kubectl get pods -n redis-stream-demo`
 - Pod logs: `kubectl logs -l app=ingress-service -n redis-stream-demo`
 
-## Running with Docker Compose
-
-For local development with Docker, you can use Docker Compose to start all services at once:
-
-```powershell
-# Run the convenience script
-./run-locally-docker.ps1
-
-# Or use docker-compose directly
-docker-compose up -d
-```
-
-This will start Redis, IngressService, and ProxyService containers with appropriate networking.
-
-Services will be available at:
-- IngressService: http://localhost:5009
-- ProxyService: http://localhost:5010
-
 ## Flow
 
 When sending a request to the weather forecast endpoint:
@@ -184,65 +170,6 @@ This decoupled approach provides several benefits:
 - Services can be scaled independently
 - Temporary service outages are handled gracefully
 - Backpressure is managed through the Redis stream
-
-## Kubernetes Deployment
-
-For production deployment on Kubernetes, follow these steps:
-
-### 1. Configure Docker Registry
-
-Ensure your Docker registry is properly configured in the `deploy-to-k8s.ps1` script:
-
-```powershell
-$IMAGE_REGISTRY = "localhost:5000"  # Change this to your container registry
-```
-
-### 2. Deploy to Kubernetes
-
-Run the deployment script:
-
-```powershell
-./deploy-to-k8s.ps1
-```
-
-This will:
-- Build and push Docker images for both services
-- Create necessary Kubernetes namespaces
-- Deploy Redis instance
-- Deploy IngressService and ProxyService with proper configurations
-- Set up Horizontal Pod Autoscalers (HPA)
-- Configure ingress for external access
-- Deploy Prometheus and Grafana for monitoring
-
-### 3. Access the Application
-
-After deployment completes:
-
-- Add `redis-stream-demo.local` to your hosts file:
-  ```powershell
-  Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "`n127.0.0.1 redis-stream-demo.local" -Force
-  ```
-- Access the application at: http://redis-stream-demo.local/
-
-### 4. Access Monitoring
-
-For monitoring tools, set up port forwarding:
-
-```powershell
-kubectl port-forward service/prometheus-service 9090:9090 -n monitoring
-kubectl port-forward service/grafana-service 3000:3000 -n monitoring
-```
-
-Then access:
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (credentials: admin/admin)
-
-### 5. Troubleshooting
-
-If pods don't start correctly, check:
-- ConfigMap existence: `kubectl get configmap app-config -n redis-stream-demo`
-- Pod status: `kubectl get pods -n redis-stream-demo`
-- Pod logs: `kubectl logs -l app=ingress-service -n redis-stream-demo`
 
 ## Load Testing and Monitoring
 
