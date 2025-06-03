@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Collections.Concurrent;
 using IngressService.Models;
 using StackExchange.Redis;
 
@@ -10,18 +11,15 @@ public class RedisStreamService
     private readonly ILogger<RedisStreamService> _logger;
     private const string StreamKey = "weather-requests";
     private const string ResponseStreamKey = "weather-responses";
-    private readonly Dictionary<string, TaskCompletionSource<WeatherResponse>> _pendingRequests;
-
-    public RedisStreamService(IConnectionMultiplexer redis, ILogger<RedisStreamService> logger)
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<WeatherResponse>> _pendingRequests; public RedisStreamService(IConnectionMultiplexer redis, ILogger<RedisStreamService> logger)
     {
         _redis = redis;
         _logger = logger;
-        _pendingRequests = new Dictionary<string, TaskCompletionSource<WeatherResponse>>();
+        _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<WeatherResponse>>();
 
         // Start listening for responses
         _ = StartResponseListening();
     }
-
     public async Task<WeatherResponse> SendRequestAsync(WeatherRequest request)
     {
         var db = _redis.GetDatabase();
@@ -30,10 +28,7 @@ public class RedisStreamService
         var tcs = new TaskCompletionSource<WeatherResponse>();
 
         // Store the TaskCompletionSource for this request
-        lock (_pendingRequests)
-        {
-            _pendingRequests[requestId] = tcs;
-        }
+        _pendingRequests[requestId] = tcs;
 
         try
         {
@@ -65,10 +60,7 @@ public class RedisStreamService
             _logger.LogError(ex, "Error sending request to Redis stream");
 
             // Clean up the pending request
-            lock (_pendingRequests)
-            {
-                _pendingRequests.Remove(requestId);
-            }
+            _pendingRequests.TryRemove(requestId, out _);
 
             throw;
         }
@@ -112,19 +104,12 @@ public class RedisStreamService
 
                             if (response != null)
                             {
-                                TaskCompletionSource<WeatherResponse>? tcs = null;
-
-                                // Try to get the TaskCompletionSource for this request
-                                lock (_pendingRequests)
+                                // Try to get and remove the TaskCompletionSource for this request
+                                if (_pendingRequests.TryRemove(requestId, out var tcs))
                                 {
-                                    if (_pendingRequests.TryGetValue(requestId, out tcs))
-                                    {
-                                        _pendingRequests.Remove(requestId);
-                                    }
+                                    // Complete the task with the response
+                                    tcs.SetResult(response);
                                 }
-
-                                // Complete the task with the response
-                                tcs?.SetResult(response);
                             }
                         }
                         catch (Exception ex)
