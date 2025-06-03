@@ -1,4 +1,5 @@
 using IngressService.Services;
+using IngressService.Middleware;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMetricsMiddleware(); // Add metrics middleware
 app.MapControllers();
 
 app.Run();

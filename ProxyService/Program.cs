@@ -1,4 +1,5 @@
 using ProxyService.Services;
+using ProxyService.Middleware;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,8 +15,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
 
-// Register the Redis stream service as a hosted service
-builder.Services.AddHostedService<RedisStreamService>();
+// Register the Redis stream service as a hosted service and as a singleton for metrics access
+builder.Services.AddSingleton<RedisStreamService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<RedisStreamService>());
 
 var app = builder.Build();
 
@@ -28,6 +30,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMetricsMiddleware(); // Add metrics middleware
 app.MapControllers();
 
 app.Run();

@@ -15,7 +15,9 @@ public class WeatherForecastController : ControllerBase
     {
         _redisStreamService = redisStreamService;
         _logger = logger;
-    }    [HttpGet(Name = "GetWeatherForecast")]
+    }    
+
+    [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {
         var summaries = new[]
@@ -54,5 +56,11 @@ public class WeatherForecastController : ControllerBase
             _logger.LogError(ex, "Error processing weather request");
             return StatusCode(500, "An error occurred while processing your request");
         }
+    }
+
+    [HttpGet("health")]
+    public IActionResult HealthCheck()
+    {
+        return Ok("Service is healthy");
     }
 }

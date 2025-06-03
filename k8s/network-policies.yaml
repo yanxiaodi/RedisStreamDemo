@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: redis-stream-demo
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: ingress-service
+    - podSelector:
+        matchLabels:
+          app: proxy-service
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-service-network-policy
+  namespace: redis-stream-demo
+spec:
+  podSelector:
+    matchLabels:
+      app: ingress-service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from: []  # Allow ingress traffic from anywhere (handled by Kubernetes Ingress)
+    ports:
+    - protocol: TCP
+      port: 80

@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis-stream
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-stream-network
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  ingress-service:
+    build:
+      context: .
+      dockerfile: IngressService/Dockerfile
+    container_name: ingress-service
+    ports:
+      - "5009:80"
+    networks:
+      - redis-stream-network
+    depends_on:
+      - redis
+    environment:
+      - ConnectionStrings__Redis=redis:6379
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  proxy-service:
+    build:
+      context: .
+      dockerfile: ProxyService/Dockerfile
+    container_name: proxy-service
+    ports:
+      - "5010:80"
+    networks:
+      - redis-stream-network
+    depends_on:
+      - redis
+    environment:
+      - ConnectionStrings__Redis=redis:6379
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+networks:
+  redis-stream-network:
+    driver: bridge
+
+volumes:
+  redis-data:
