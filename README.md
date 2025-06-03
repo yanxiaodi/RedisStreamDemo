@@ -308,9 +308,70 @@ Monitor the application's performance using:
    - Request queue depths
    - Error rates
 
+## Updates and Roadmap
+
+### Recent Enhancements
+
+#### Testing Improvements (Latest)
+
+- Added unified load testing script with configurable parameters
+- Enhanced error handling and reporting in test scripts
+- Added support for different deployment environments in tests
+- Improved test output with color-coded success/failure reporting
+- Automatic health checks before testing
+
+#### Resilience Features
+
+- Implemented Polly-based resilience patterns for improved reliability
+- Added retry logic for all Redis operations with exponential backoff
+- Implemented circuit breaker pattern to prevent cascading failures
+- Enhanced metrics with queue depth and circuit state tracking
+- Improved health checks to detect circuit breaker status
+- Added graceful shutdown handling in background services
+
+#### Kubernetes Deployment
+
+- Complete Kubernetes deployment configurations for a production environment
+- Resource limits and requests for optimal performance
+- Readiness and liveness probes for service health monitoring
+- Horizontal Pod Autoscalers for automatic scaling based on load
+- Network policies for enhanced security
+- ConfigMap for centralized configuration management
+
+#### Monitoring and Observability
+
+- Prometheus and Grafana integration for comprehensive monitoring
+- Custom metrics endpoints for application-specific metrics
+- Active terminal tracking in ProxyService for concurrency visibility
+- Basic Kubernetes monitoring script for operational convenience
+
+#### Application Improvements
+
+- Health check endpoints for both services
+- Metrics middleware for request tracking
+- Improved terminal management in ProxyService
+- Thread-safe concurrent collections for request handling
+
+### Future Plans
+
+1. **Persistent Redis**: Configure Redis with persistence for message durability
+2. **Distributed Tracing**: Add OpenTelemetry integration for request tracing
+3. ~~**Circuit Breakers**: Implement circuit breakers for resilience~~ (Implemented)
+4. **Rate Limiting**: Add API rate limiting to protect the system from overload
+5. **Authentication**: Implement JWT authentication for API security
+6. ~~**Graceful Shutdown**: Enhance shutdown logic to properly drain requests~~ (Implemented)
+7. **Chaos Testing**: Implement chaos testing to verify system resilience
+8. **CI/CD Pipeline**: Create a full CI/CD pipeline for automated deployments
+
+### Deployment Considerations
+
+- For production environments, consider using a managed Redis service
+- Adjust resource limits based on actual production workloads
+- Consider implementing a service mesh for advanced traffic management
+- Set up proper logging aggregation (e.g., ELK stack, Loki)
+
 ## Additional Resources
 
 - [RESILIENCE.md](RESILIENCE.md) - Details on resilience patterns implemented
 - [DEPLOYMENT.md](DEPLOYMENT.md) - More details on deployment options
-- [UPDATES.md](UPDATES.md) - Recent updates and changes
 
