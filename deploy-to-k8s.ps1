@@ -33,29 +33,33 @@ kubectl apply -f k8s/namespaces.yaml
 Write-Host "🔨 Deploying Redis..." -ForegroundColor Cyan
 kubectl apply -f k8s/redis.yaml
 
-# Step 5: Deploy services with proper image references
+# Step 5: Apply ConfigMap
+Write-Host "🔨 Applying ConfigMap..." -ForegroundColor Cyan
+kubectl apply -f k8s/config-map.yaml
+
+# Step 6: Deploy services with proper image references
 Write-Host "🔨 Generating deployment manifests with correct image references..." -ForegroundColor Cyan
 
 # Update IngressService manifest with the correct image
 $ingressYaml = Get-Content -Path k8s/ingress-service.yaml -Raw
 $ingressYaml = $ingressYaml -replace "image: ingress-service:latest", "image: $INGRESS_SERVICE_IMAGE"
-$ingressYaml | Set-Content -Path k8s/ingress-service.yaml.tmp
+$ingressYaml | Out-File -FilePath k8s/temp-ingress-service.yaml -Encoding utf8
 
 # Update ProxyService manifest with the correct image
 $proxyYaml = Get-Content -Path k8s/proxy-service.yaml -Raw
 $proxyYaml = $proxyYaml -replace "image: proxy-service:latest", "image: $PROXY_SERVICE_IMAGE"
-$proxyYaml | Set-Content -Path k8s/proxy-service.yaml.tmp
+$proxyYaml | Out-File -FilePath k8s/temp-proxy-service.yaml -Encoding utf8
 
-# Step 6: Deploy the services
+# Step 7: Deploy the services
 Write-Host "🚀 Deploying services..." -ForegroundColor Cyan
-kubectl apply -f k8s/ingress-service.yaml.tmp
-kubectl apply -f k8s/proxy-service.yaml.tmp
+kubectl apply -f k8s/temp-ingress-service.yaml
+kubectl apply -f k8s/temp-proxy-service.yaml
 
 # Clean up temporary files
-Remove-Item -Path k8s/ingress-service.yaml.tmp
-Remove-Item -Path k8s/proxy-service.yaml.tmp
+Remove-Item -Path k8s/temp-ingress-service.yaml
+Remove-Item -Path k8s/temp-proxy-service.yaml
 
-# Step 7: Configure autoscalers
+# Step 8: Configure autoscalers
 Write-Host "⚖️ Setting up HPA..." -ForegroundColor Cyan
 kubectl apply -f k8s/ingress-service-hpa.yaml
 kubectl apply -f k8s/proxy-service-hpa.yaml

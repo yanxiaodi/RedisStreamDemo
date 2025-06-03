@@ -59,9 +59,8 @@ function Show-Metrics {
     $TEMP_PORT = Get-Random -Minimum 10000 -Maximum 20000
     
     Write-Host "Starting port-forward for $PodName on port $TEMP_PORT..." -ForegroundColor Yellow
-    $job = Start-Job -ScriptBlock { 
-        param($ns, $pod, $port) 
-        kubectl port-forward -n $ns $pod ${port}:80
+    $job = Start-Job -ScriptBlock {        param($ns, $pod, $port) 
+        kubectl port-forward -n $ns $pod ${port}:8080
     } -ArgumentList $NAMESPACE, $PodName, $TEMP_PORT
     
     # Wait a moment for port-forward to establish
@@ -107,10 +106,9 @@ function Port-Forward-Prometheus {
 
 function Port-Forward-IngressService {
     $ingressPod = (kubectl get pods -n $NAMESPACE -l app=ingress-service -o jsonpath="{.items[0].metadata.name}")
-    if ($ingressPod) {
-        Write-Host "Starting port-forward for IngressService on localhost:8080..." -ForegroundColor Yellow
+    if ($ingressPod) {        Write-Host "Starting port-forward for IngressService on localhost:8080..." -ForegroundColor Yellow
         Write-Host "Press Ctrl+C to stop" -ForegroundColor Yellow
-        kubectl port-forward -n $NAMESPACE $ingressPod 8080:80
+        kubectl port-forward -n $NAMESPACE $ingressPod 8080:8080
     } else {
         Write-Host "No IngressService pod found!" -ForegroundColor Red
     }
@@ -125,10 +123,9 @@ function Test-Service {
     
     $TEMP_PORT = Get-Random -Minimum 10000 -Maximum 20000
     
-    Write-Host "Starting port-forward for IngressService on port $TEMP_PORT..." -ForegroundColor Yellow
-    $job = Start-Job -ScriptBlock { 
+    Write-Host "Starting port-forward for IngressService on port $TEMP_PORT..." -ForegroundColor Yellow    $job = Start-Job -ScriptBlock { 
         param($ns, $pod, $port) 
-        kubectl port-forward -n $ns $pod ${port}:80
+        kubectl port-forward -n $ns $pod ${port}:8080
     } -ArgumentList $NAMESPACE, $ingressPod, $TEMP_PORT
     
     # Wait a moment for port-forward to establish

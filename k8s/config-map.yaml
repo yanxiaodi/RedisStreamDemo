@@ -8,3 +8,4 @@ data:
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft.AspNetCore: "Warning"
   ConnectionStrings__Redis: "redis:6379"
+  ASPNETCORE_URLS: "http://+:8080"

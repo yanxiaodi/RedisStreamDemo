@@ -6,7 +6,7 @@ metadata:
   labels:
     app: proxy-service
 spec:
-  replicas: 15  # Based on calculation for 30,000 req/min with 150ms processing time
+  replicas: 3
   selector:
     matchLabels:
       app: proxy-service
@@ -17,34 +17,34 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
-        prometheus.io/port: "80"
+        prometheus.io/port: "8080"
     spec:
       containers:
       - name: proxy-service
         image: proxy-service:latest
-        imagePullPolicy: IfNotPresent  # For local development with Docker Desktop
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         envFrom:
         - configMapRef:
             name: app-config
         resources:
           requests:
-            cpu: "500m"  # 0.5 CPU cores
-            memory: "1Gi"
+            cpu: "200m"
+            memory: "512Mi"
           limits:
-            cpu: "1"     # 1 CPU core
-            memory: "2Gi"
+            cpu: "500m"
+            memory: "1Gi"
         readinessProbe:
           httpGet:
             path: /healthz
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 80
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 30
 ---
@@ -58,5 +58,5 @@ spec:
     app: proxy-service
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
   type: ClusterIP
