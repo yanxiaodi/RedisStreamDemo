@@ -12,14 +12,13 @@ services:
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
-
   ingress-service:
     build:
       context: .
       dockerfile: IngressService/Dockerfile
     container_name: ingress-service
     ports:
-      - "5009:80"
+      - "5009:8080"
     networks:
       - redis-stream-network
     depends_on:
@@ -27,15 +26,15 @@ services:
     environment:
       - ConnectionStrings__Redis=redis:6379
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
-
   proxy-service:
     build:
       context: .
       dockerfile: ProxyService/Dockerfile
     container_name: proxy-service
     ports:
-      - "5010:80"
+      - "5010:8080"
     networks:
       - redis-stream-network
     depends_on:
@@ -43,6 +42,7 @@ services:
     environment:
       - ConnectionStrings__Redis=redis:6379
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
 
 networks:
