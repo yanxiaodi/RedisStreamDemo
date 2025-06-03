@@ -1,9 +1,39 @@
 # Redis Stream Demo
 
-This project demonstrates a message queue system using Redis Streams with two ASP.NET Core Web API services:
+This project demonstrates a decoupled service architecture using Redis Streams for communication between services.
 
-1. **IngressService**: Receives requests, sends them to Redis stream, and waits for responses
-2. **ProxyService**: Processes requests from Redis stream and returns mock weather data
+## Architecture
+
+The solution consists of two ASP.NET Core Web API services:
+
+1. **IngressService** - Receives requests from clients, sends them to a Redis stream, and waits for responses.
+2. **ProxyService** - Reads requests from the Redis stream, processes them, and sends responses back.
+
+This architecture allows for:
+- Loose coupling between services
+- Scaling each service independently
+- Resilience to service outages
+- Controlled concurrency and backpressure
+
+## Concurrency Control
+
+The ProxyService implements a concurrency control mechanism to limit the number of concurrent requests it processes:
+
+- Each instance of the ProxyService manages 5 "terminals" (concurrent workers)
+- Each terminal can handle one request at a time
+- Requests are queued using a bounded channel to handle backpressure
+- When all terminals are busy, new requests are queued until a terminal becomes available
+
+This design allows for:
+1. Protecting legacy services that can only handle a limited number of concurrent requests
+2. Efficient resource utilization across multiple instances
+3. Preventing overload during traffic spikes
+
+## Redis Streams
+
+The services communicate using two Redis streams:
+- `weather-requests` - For requests from IngressService to ProxyService
+- `weather-responses` - For responses from ProxyService back to IngressService
 
 ## Prerequisites
 
@@ -67,3 +97,30 @@ XRANGE weather-requests - +
 # View all entries in the response stream
 XRANGE weather-responses - +
 ```
+
+## Kubernetes Deployment
+
+For a production deployment, you would:
+
+1. Create Docker images for each service
+2. Deploy to Kubernetes with:
+   - Deployments for IngressService and ProxyService
+   - A Redis StatefulSet or use a managed Redis service
+   - Services to expose the APIs
+   - Horizontal Pod Autoscalers to scale based on load
+
+With 10 ProxyService pods, each handling 5 concurrent requests, the system can process up to 50 concurrent requests.
+
+## Load Testing
+
+Use the provided load testing scripts to verify the concurrent processing:
+- `simple-load-test.ps1` - Sequential requests
+- `concurrent-load-test.ps1` - Concurrent requests
+- `load-test.ps1` - Full load test with parallel processing
+
+## Monitoring
+
+Monitor the system's performance by:
+1. Watching the Redis stream lengths to detect bottlenecks
+2. Tracking terminal utilization across ProxyService instances
+3. Measuring response times for different load levels
