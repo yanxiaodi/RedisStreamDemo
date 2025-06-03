@@ -267,11 +267,7 @@ The unified script provides:
 - Support for different deployment environments
 - Detailed success/failure reporting
 - Automatic health checks before testing
-
-Legacy scripts are also available for specific use cases:
-- `simple-load-test.ps1` - Basic sequential requests
-- `concurrent-load-test.ps1` - PowerShell 7+ optimized parallel testing
-- `load-test.ps1` - PowerShell 5.1 compatible parallel testing
+- Compatible with both PowerShell 5.1 and 7+
 
 ### Monitoring Performance
 

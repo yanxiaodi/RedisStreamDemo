@@ -105,6 +105,19 @@ docker-compose up -d
 
 ## Load Testing
 
-Use the provided load testing scripts:
-- `simple-load-test.ps1` - Sequential requests
-- `concurrent-load-test.ps1` - Concurrent requests with detailed metrics
+Use the unified load testing script:
+```bash
+./load-test-unified.ps1 [-Mode <sequential|concurrent>] [-Url <baseUrl>] [-Count <requestCount>] [-Timeout <timeoutSeconds>]
+```
+
+Examples:
+```bash
+# Run default test (sequential, 10 requests)
+./load-test-unified.ps1
+
+# Run concurrent test 
+./load-test-unified.ps1 -Mode concurrent
+
+# Test against Kubernetes deployment
+./load-test-unified.ps1 -Url http://redis-stream-demo.local -Mode concurrent
+```
