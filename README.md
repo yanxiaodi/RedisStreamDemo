@@ -20,6 +20,11 @@ This project demonstrates a decoupled service architecture using Redis Streams f
       - [4. Access Monitoring](#4-access-monitoring)
       - [5. Troubleshooting](#5-troubleshooting)
   - [Flow](#flow)
+  - [Architecture](#architecture)
+    - [System Components](#system-components)
+    - [Communication Flow](#communication-flow)
+    - [Redis Streams](#redis-streams)
+    - [Concurrency Control](#concurrency-control)
   - [Load Testing and Monitoring](#load-testing-and-monitoring)
     - [Running Load Tests](#running-load-tests)
     - [Monitoring Performance](#monitoring-performance)
@@ -170,6 +175,67 @@ This decoupled approach provides several benefits:
 - Services can be scaled independently
 - Temporary service outages are handled gracefully
 - Backpressure is managed through the Redis stream
+
+## Architecture
+
+### System Components
+
+The Redis Stream Demo consists of the following components:
+
+- **IngressService**: Acts as the entry point for client requests, exposing RESTful API endpoints. Handles request validation, logging, and metrics collection.
+- **ProxyService**: Processes business logic, performs data transformations, and generates responses to client requests.
+- **Redis**: Serves as the central message broker, handling communication between services using Redis Streams.
+
+### Communication Flow
+
+1. **Client to IngressService**:
+   - Client sends HTTP requests to IngressService endpoints
+   - IngressService validates the request and prepares it for processing
+
+2. **IngressService to Redis**:
+   - IngressService serializes the request to JSON
+   - Request is added to the `weather-requests` Redis Stream with a unique ID
+   - IngressService awaits response on the `weather-responses` stream
+
+3. **ProxyService from Redis**:
+   - ProxyService continuously monitors the `weather-requests` stream
+   - When a new request arrives, it's picked up by an available terminal
+   - The request is processed according to business rules
+
+4. **ProxyService to Redis**:
+   - ProxyService generates a response and serializes it to JSON
+   - Response is added to the `weather-responses` stream with the original request ID
+   
+5. **IngressService to Client**:
+   - IngressService retrieves the matching response from `weather-responses`
+   - Response is deserialized and returned to the client
+
+### Redis Streams
+
+Redis Streams provide the foundation for service communication with several advantages:
+
+- **Persistence**: Messages are stored in an append-only log, preventing data loss
+- **Consumer Groups**: Enable message distribution among multiple consumers
+- **Message Acknowledgment**: Ensure messages are processed successfully
+- **Blocking Operations**: Efficient polling with minimal resource consumption
+- **Backpressure Handling**: Natural queuing mechanism prevents service overload
+
+The implementation uses:
+- Stream keys: `weather-requests` and `weather-responses`
+- Consumer group: `processing-group` for the ProxyService
+- Stream trimming: Automatic cleanup of processed messages
+
+### Concurrency Control
+
+The system implements several concurrency patterns:
+
+- **Terminal Pool**: ProxyService manages a configurable pool of worker terminals
+- **Thread-Safe Collections**: Concurrent dictionaries for tracking request state
+- **Request Correlation**: Request and response correlation through unique IDs
+- **Semaphore Limiting**: Controlled access to shared resources
+- **Optimistic Concurrency**: Using Redis Stream IDs for message ordering
+
+This architecture ensures the system can handle multiple concurrent requests while maintaining consistency and reliability.
 
 ## Load Testing and Monitoring
 
